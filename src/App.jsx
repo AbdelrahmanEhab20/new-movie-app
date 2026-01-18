@@ -94,28 +94,24 @@ const App = () => {
           {/* search */}
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
-        <section className='trending'>
-          <h2>Trending </h2>
-          <ul>
-            {trendingMovies.length > 0 ? (
-              trendingMovies.map((movie, index) => (
-                <li key={movie.$id} className="trending-movie-card">
-                  <p className="trending-rank">{index + 1}</p>
-                  <img
-                    src={movie.poster_url}
-                    alt={movie.searchTerm}
-                  // className="trending-movie-poster"
-                  />
+        {/* Trending Movies Section */}
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending </h2>
+
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
                 </li>
-              ))
-            ) : (
-              <p>No trending movies available.</p>
-            )}
-          </ul>
-        </section>
+              ))}
+            </ul>
+          </section>
+        )}
         {/* Movies Section */}
         <section className='all-movies'>
-          <h2 >Popular</h2>
+          <h2>All Movies</h2>
           {isLoading ? (
             <Spinner />
           ) : errorMessage ? (
