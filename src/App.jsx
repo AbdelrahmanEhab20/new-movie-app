@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Search from './components/Search'
+import Spinner from './components/Spinner';
+import MovieCard from './components/MovieCard';
 
 // API constants 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
@@ -15,25 +17,39 @@ const API_OPTIONS = {
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [moviesList, setMoviesList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   //Function to fetch data from API
-  const fetchData = async (endpoint) => {
+  const fetchData = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, API_OPTIONS);
+      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const response = await fetch(endpoint, API_OPTIONS);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
       const data = await response.json();
-      console.log("data")
-      console.log(data)
-      return data;
+      if (data.Response === 'False') {
+        setErrorMessage(data.Error || 'Error fetching movies data');
+        setMoviesList([]);
+        return null;
+      }
+      setMoviesList(data.results || []);
+      return;
     } catch (error) {
       console.error('Error fetching data:', error);
+      setErrorMessage(error.message);
       return null;
+    } finally {
+      setIsLoading(false);
     }
   }
   // Fetch initial data
   useEffect(() => {
-    fetchData('/movie/popular').then(data => {
-      console.log('Popular Movies:', data);
-    });
+    fetchData();
   }, []);
 
   return (
@@ -45,9 +61,26 @@ const App = () => {
         <header>
           <img src="./hero-img.png" alt="Hero Banner" />
           <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without The Hassle</h1>
+          {/* search */}
+          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
-        {/* search */}
-        <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        {/* Movies Section */}
+        <section className='all-movies'>
+          <h2 className='mt-5'>All Movies</h2>
+          {isLoading ? (
+            <Spinner />
+          ) : errorMessage ? (
+            <p className="error-message">{errorMessage}</p>
+          ) : moviesList.length > 0 ? (
+            <ul className="movies-grid">
+              {moviesList.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </ul>
+          ) : (
+            <p>No movies found.</p>
+          )}
+        </section>
       </div>
     </main>
   )
