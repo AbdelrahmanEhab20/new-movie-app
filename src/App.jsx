@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { useDebounce } from 'react-use';
 import Search from './components/Search'
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { updateSearchCount } from './appwrite';
 
 // API constants 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
@@ -20,13 +22,23 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [moviesList, setMoviesList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
+  // Debounce search term input
+  useDebounce(
+    () => {
+      setDebouncedSearchTerm(searchTerm);
+    },
+    500,
+    [searchTerm]
+  );
   //Function to fetch data from API
-  const fetchData = async () => {
+  const fetchData = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}` :
+        `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -38,7 +50,10 @@ const App = () => {
         return null;
       }
       setMoviesList(data.results || []);
-      return;
+      if (query && data.results.length > 0) {
+        // Update search count in Appwrite
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       setErrorMessage(error.message);
@@ -49,8 +64,8 @@ const App = () => {
   }
   // Fetch initial data
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <main>
