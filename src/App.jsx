@@ -4,7 +4,7 @@ import { useDebounce } from 'react-use';
 import Search from './components/Search'
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
-import { updateSearchCount } from './appwrite';
+import { getTrendingListOfMovies, updateSearchCount } from './appwrite';
 
 // API constants 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
@@ -23,6 +23,7 @@ const App = () => {
   const [moviesList, setMoviesList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   // Debounce search term input
   useDebounce(
@@ -32,6 +33,7 @@ const App = () => {
     500,
     [searchTerm]
   );
+
   //Function to fetch data from API
   const fetchData = async (query = '') => {
     setIsLoading(true);
@@ -62,11 +64,24 @@ const App = () => {
       setIsLoading(false);
     }
   }
+  //Function to load data from appwrite to show trending movies
+  const loadTrendingMovies = async () => {
+    try {
+      const trendingData = await getTrendingListOfMovies();
+      setTrendingMovies(trendingData);
+    } catch (error) {
+      console.error('Error loading trending movies:', error);
+    }
+  };
+
   // Fetch initial data
   useEffect(() => {
     fetchData(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
-
+  // Load trending movies on mount
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
   return (
     <main>
       {/* pattern */}
@@ -79,9 +94,28 @@ const App = () => {
           {/* search */}
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
+        <section className='trending'>
+          <h2>Trending </h2>
+          <ul>
+            {trendingMovies.length > 0 ? (
+              trendingMovies.map((movie, index) => (
+                <li key={movie.$id} className="trending-movie-card">
+                  <p className="trending-rank">{index + 1}</p>
+                  <img
+                    src={movie.poster_url}
+                    alt={movie.searchTerm}
+                  // className="trending-movie-poster"
+                  />
+                </li>
+              ))
+            ) : (
+              <p>No trending movies available.</p>
+            )}
+          </ul>
+        </section>
         {/* Movies Section */}
         <section className='all-movies'>
-          <h2 className='mt-5'>All Movies</h2>
+          <h2 >Popular</h2>
           {isLoading ? (
             <Spinner />
           ) : errorMessage ? (

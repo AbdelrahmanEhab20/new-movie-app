@@ -13,7 +13,7 @@ const client = new Client()
 
 // access database service
 const databases = new Databases(client);
-// function to update the search count
+// 🟩🟩🟩 function to update the search count 🟩🟩🟩
 export const updateSearchCount = async (searchTerm, movie) => {
   // 1. User Appwrite SDK to check if the search term exists in the database
   try {
@@ -48,6 +48,21 @@ export const updateSearchCount = async (searchTerm, movie) => {
         },
       );
     }
+  } catch (error) {
+    console.error("Appwrite service error:", error.message); // This will tell you if it's a 401 (Permissions) or 404 (ID error)
+    console.log("Full error object:", error);
+  }
+};
+
+// 🟠🟠🟠🟠 function to get the trending list of movies 🟠🟠🟠🟠🟠
+export const getTrendingListOfMovies = async () => {
+  try {
+    const result = await databases.listDocuments(
+      appWriteConfig.databaseId,
+      appWriteConfig.collectionId,
+      [Query.orderDesc("count"), Query.limit(5)],
+    );
+    return result.documents;
   } catch (error) {
     console.error("Appwrite service error:", error.message); // This will tell you if it's a 401 (Permissions) or 404 (ID error)
     console.log("Full error object:", error);
