@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import './App.css'
 import { useDebounce } from 'react-use';
 import Search from './components/Search'
@@ -31,6 +31,8 @@ const Home = ({
   setCurrentPage,
   totalPages
 }) => {
+  const navigate = useNavigate()
+
   return (
     <main>
       <div className="pattern" />
@@ -41,12 +43,17 @@ const Home = ({
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+
         {trendingMovies.length > 0 && (
           <section className="trending">
             <h2>Trending </h2>
             <ul>
               {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
+                <li
+                  key={movie.$id}
+                  onClick={() => navigate(`/movie/${movie.movie_id}`)}
+                  className="cursor-pointer hover:opacity-80 transition"
+                >
                   <p>{index + 1}</p>
                   <img src={movie.poster_url} alt={movie.searchTerm} />
                 </li>
