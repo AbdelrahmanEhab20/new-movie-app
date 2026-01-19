@@ -1,14 +1,16 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function MovieCard({
-    movie: { title,
-        poster_path,
-        vote_average,
-        release_date,
-        original_language }
+    movie: { id, title, poster_path, vote_average, release_date, original_language }
 }) {
+    const navigate = useNavigate()
+
     return (
-        <div className="movie-card">
+        <div
+            className="movie-card cursor-pointer hover:shadow-lg hover:shadow-indigo-600/50 transition"
+            onClick={() => navigate(`/movie/${id}`)}
+        >
             <img
                 src={poster_path ? `https://image.tmdb.org/t/p/w500${poster_path}` : './No-Poster.png'}
                 alt={title}
@@ -18,17 +20,14 @@ function MovieCard({
                 <div className='content'>
                     <div className='rating'>
                         <img src="./Rating.png" alt="Star Icon" />
-                        <p>{vote_average ? vote_average.toFixed(1) : 'N/A'}     </p>
+                        <p>{vote_average ? vote_average.toFixed(1) : 'N/A'}</p>
                     </div>
                     <span>• </span>
                     <p className='lang'>{original_language.toUpperCase()}</p>
                     <span>• </span>
-                    {/* <p className='year'>{release_date ? new Date(release_date).getFullYear() : 'N/A'}</p> */}
                     <p className='year'>{release_date ? release_date.split('-')[0] : 'N/A'}</p>
-
                 </div>
             </div>
-
         </div>
     )
 }
